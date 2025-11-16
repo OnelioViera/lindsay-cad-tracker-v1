@@ -96,10 +96,10 @@ app.put('/api/projects/:id', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    if (!result.value) {
+    if (!result) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    res.json(result.value);
+    res.json(result);
   } catch (error) {
     console.error('Error updating project:', error);
     res.status(500).json({ error: 'Failed to update project' });
@@ -163,10 +163,10 @@ app.put('/api/customers/:id', async (req, res) => {
       { returnDocument: 'after' }
     );
     
-    if (!result.value) {
+    if (!result) {
       return res.status(404).json({ error: 'Customer not found' });
     }
-    res.json(result.value);
+    res.json(result);
   } catch (error) {
     console.error('Error updating customer:', error);
     res.status(500).json({ error: 'Failed to update customer' });
