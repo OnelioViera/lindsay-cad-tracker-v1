@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lindsay Precast CAD Workflow Tracker</title>
     <script
       crossorigin
@@ -37,8 +37,10 @@
     <script type="text/babel">
       const { useState, useEffect } = React;
 
-      // API Base URL
-      const API_BASE = 'http://localhost:3001/api';
+      // API Base URL - works in both development and production
+      const API_BASE = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001/api'
+        : '/api';
 
       // API Helper Functions
       const api = {
