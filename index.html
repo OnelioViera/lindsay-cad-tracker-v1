@@ -1138,7 +1138,7 @@
           // Determine which projects to export
           const projectsToExport =
             selectedProjects.length > 0
-              ? filteredProjects.filter((p) => selectedProjects.includes(p.id))
+              ? filteredProjects.filter((p) => selectedProjects.includes(p._id))
               : filteredProjects;
 
           if (projectsToExport.length === 0) {
