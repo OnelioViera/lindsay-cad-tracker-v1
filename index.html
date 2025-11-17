@@ -2104,6 +2104,64 @@
                       </div>
                     </div>
                   </div>
+
+                  {/* Additional Metrics Row */}
+                  <div className="grid grid-cols-5 gap-4 mb-6">
+                    <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+                      <div className="text-xs font-medium text-purple-600 mb-1">Avg. Project Duration</div>
+                      <div className="text-2xl font-bold text-purple-900">
+                        {projects.filter(p => p.statusHistory && p.statusHistory.length > 0).length > 0
+                          ? Math.round(
+                              projects
+                                .filter(p => p.statusHistory && p.statusHistory.length > 0)
+                                .reduce((sum, p) => {
+                                  const start = new Date(p.statusHistory[0].timestamp);
+                                  const end = new Date();
+                                  return sum + Math.floor((end - start) / (1000 * 60 * 60 * 24));
+                                }, 0) /
+                                projects.filter(p => p.statusHistory && p.statusHistory.length > 0).length
+                            )
+                          : 0}{' '}
+                        <span className="text-sm font-normal">days</span>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border-2 border-cyan-200">
+                      <div className="text-xs font-medium text-cyan-600 mb-1">Projects This Month</div>
+                      <div className="text-2xl font-bold text-cyan-900">
+                        {projects.filter(p => {
+                          const projectDate = new Date(p.dateAssigned);
+                          const now = new Date();
+                          return projectDate.getMonth() === now.getMonth() && 
+                                 projectDate.getFullYear() === now.getFullYear();
+                        }).length}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border-2 border-red-200">
+                      <div className="text-xs font-medium text-red-600 mb-1">Overdue Projects</div>
+                      <div className="text-2xl font-bold text-red-900">
+                        {projects.filter(p => {
+                          if (!p.statusHistory || p.statusHistory.length === 0 || p.status === 'Shipped') return false;
+                          const lastUpdate = new Date(p.statusHistory[p.statusHistory.length - 1].timestamp);
+                          const daysSinceUpdate = Math.floor((new Date() - lastUpdate) / (1000 * 60 * 60 * 24));
+                          return daysSinceUpdate > 14; // Projects inactive for 14+ days
+                        }).length}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border-2 border-indigo-200">
+                      <div className="text-xs font-medium text-indigo-600 mb-1">Total Customers</div>
+                      <div className="text-2xl font-bold text-indigo-900">
+                        {new Set(projects.map(p => p.customer)).size}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border-2 border-teal-200">
+                      <div className="text-xs font-medium text-teal-600 mb-1">Completion Rate</div>
+                      <div className="text-2xl font-bold text-teal-900">
+                        {projects.length > 0 
+                          ? Math.round((projects.filter(p => p.status === 'Shipped').length / projects.length) * 100)
+                          : 0}%
+                      </div>
+                    </div>
+                  </div>
                   
                   {/* Status Breakdown - Collapsible */}
                   <div className="mb-6 border border-gray-200 rounded-lg">
@@ -2249,6 +2307,117 @@
                     </div>
                     </div>
                     )}
+                  </div>
+
+                  {/* Top Customers - New Section */}
+                  <div className="border border-gray-200 rounded-lg mt-6">
+                    <div className="p-4 bg-gray-50 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900">Top Customers by Project Volume</h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-3">
+                        {Object.entries(
+                          projects.reduce((acc, p) => {
+                            acc[p.customer] = (acc[p.customer] || 0) + 1;
+                            return acc;
+                          }, {})
+                        )
+                          .sort((a, b) => b[1] - a[1])
+                          .slice(0, 10)
+                          .map(([customer, count], index) => {
+                            const activeProjects = projects.filter(p => p.customer === customer && p.status !== 'Shipped').length;
+                            const shippedProjects = projects.filter(p => p.customer === customer && p.status === 'Shipped').length;
+                            const maxCount = Math.max(...Object.values(
+                              projects.reduce((acc, p) => {
+                                acc[p.customer] = (acc[p.customer] || 0) + 1;
+                                return acc;
+                              }, {})
+                            ));
+                            const percentage = (count / maxCount) * 100;
+                            
+                            return (
+                              <div key={customer} className="flex items-center gap-3">
+                                <div className="text-sm font-bold text-gray-400 w-6">{index + 1}</div>
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="font-medium text-gray-900">{customer}</span>
+                                    <span className="text-sm text-gray-600">
+                                      <span className="font-bold text-blue-600">{count}</span> total
+                                      {' • '}
+                                      <span className="text-green-600">{shippedProjects} shipped</span>
+                                      {activeProjects > 0 && (
+                                        <span className="text-yellow-600"> • {activeProjects} active</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-blue-500 h-2 rounded-full transition-all" 
+                                      style={{width: `${percentage}%`}}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        {projects.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            No customer data available yet
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Activity - New Section */}
+                  <div className="border border-gray-200 rounded-lg mt-6">
+                    <div className="p-4 bg-gray-50 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-3">
+                        {projects
+                          .filter(p => p.statusHistory && p.statusHistory.length > 0)
+                          .sort((a, b) => {
+                            const aTime = new Date(a.statusHistory[a.statusHistory.length - 1].timestamp);
+                            const bTime = new Date(b.statusHistory[b.statusHistory.length - 1].timestamp);
+                            return bTime - aTime;
+                          })
+                          .slice(0, 8)
+                          .map((project) => {
+                            const lastStatus = project.statusHistory[project.statusHistory.length - 1];
+                            const timeAgo = Math.floor((new Date() - new Date(lastStatus.timestamp)) / (1000 * 60 * 60 * 24));
+                            
+                            return (
+                              <div key={project._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-semibold text-gray-900">{project.jobNumber}</span>
+                                    <span className="text-gray-600">-</span>
+                                    <span className="text-sm text-gray-600">{project.customer}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[lastStatus.status]}`}>
+                                      {lastStatus.status}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {timeAgo === 0 ? 'Today' : timeAgo === 1 ? 'Yesterday' : `${timeAgo} days ago`}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  PM: {project.projectManager}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        {projects.filter(p => p.statusHistory && p.statusHistory.length > 0).length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            No recent activity
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
