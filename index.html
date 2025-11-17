@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lindsay Precast CAD Workflow Tracker</title>
+    <title>Lindsay Precast Drafter Workflow Tracker</title>
     <script
       crossorigin
       src="https://unpkg.com/react@18/umd/react.production.min.js"
@@ -1243,7 +1243,7 @@
           printWindow.document.write(`
               <html>
                 <head>
-                  <title>Lindsay Precast CAD Projects Report</title>
+                  <title>Lindsay Precast Drafter Projects Report</title>
                   <style>
                     * { margin: 0; padding: 0; box-sizing: border-box; }
                     body { font-family: Arial, sans-serif; padding: 20px; position: relative; min-height: 100vh; }
@@ -1264,7 +1264,7 @@
                       @page { 
                         margin: 0.5in;
                         @bottom-center {
-                          content: "Lindsay Precast CAD Workflow Tracker - " counter(page) " of " counter(pages);
+                          content: "Lindsay Precast Drafter Workflow Tracker - " counter(page) " of " counter(pages);
                         }
                       }
                       .footer { 
@@ -1278,7 +1278,7 @@
                   </style>
                 </head>
                 <body>
-                  <h1>Lindsay Precast CAD Projects Report</h1>
+                  <h1>Lindsay Precast Drafter Projects Report</h1>
                   <p>Generated: ${new Date().toLocaleString()}</p>
                   <p>${
                     selectedProjects.length > 0
@@ -1288,7 +1288,7 @@
                   <hr>
                   ${projectsHTML}
                   <div class="footer">
-                    <p>Lindsay Precast CAD Workflow Tracker | © ${new Date().getFullYear()} Lindsay Precast | Track projects from assignment to shipment</p>
+                    <p>Lindsay Precast Drafter Workflow Tracker | © ${new Date().getFullYear()} Lindsay Precast | Track projects from assignment to shipment</p>
                   </div>
                   <button onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; cursor: pointer; border-radius: 5px;">Print/Save as PDF</button>
                 </body>
@@ -1726,7 +1726,7 @@
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900">
-                      Lindsay Precast CAD Workflow Tracker
+                      Lindsay Precast Drafter Workflow Tracker
                     </h1>
                     <p className="text-gray-600 mt-1">
                       Track projects from assignment to shipment
