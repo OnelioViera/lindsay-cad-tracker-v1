@@ -1321,6 +1321,175 @@
           }
         };
 
+        const exportDashboardToPDF = () => {
+          showToast("Generating dashboard report...", "info");
+
+          // Calculate statistics
+          const statusBreakdown = {};
+          projects.forEach((p) => {
+            statusBreakdown[p.status] = (statusBreakdown[p.status] || 0) + 1;
+          });
+
+          // Calculate average times
+          const averageTimeByStatus = {};
+          const statusProjects = {};
+          
+          projects.forEach((p) => {
+            if (p.statusHistory && p.statusHistory.length > 0) {
+              p.statusHistory.forEach((entry, idx) => {
+                const status = entry.status;
+                if (!statusProjects[status]) {
+                  statusProjects[status] = [];
+                }
+                
+                let duration = 0;
+                if (idx < p.statusHistory.length - 1) {
+                  duration = Math.floor(
+                    (new Date(p.statusHistory[idx + 1].timestamp) - new Date(entry.timestamp)) /
+                    (1000 * 60 * 60 * 24)
+                  );
+                } else {
+                  duration = Math.floor(
+                    (new Date() - new Date(entry.timestamp)) / (1000 * 60 * 60 * 24)
+                  );
+                }
+                statusProjects[status].push(duration);
+              });
+            }
+          });
+
+          Object.keys(statusProjects).forEach((status) => {
+            const times = statusProjects[status];
+            const avg = times.reduce((a, b) => a + b, 0) / times.length;
+            averageTimeByStatus[status] = Math.round(avg);
+          });
+
+          // Calculate workload by PM
+          const workloadByPM = {};
+          projects.forEach((p) => {
+            if (p.projectManager) {
+              if (!workloadByPM[p.projectManager]) {
+                workloadByPM[p.projectManager] = {
+                  total: 0,
+                  byStatus: {}
+                };
+              }
+              workloadByPM[p.projectManager].total++;
+              workloadByPM[p.projectManager].byStatus[p.status] = 
+                (workloadByPM[p.projectManager].byStatus[p.status] || 0) + 1;
+            }
+          });
+
+          // Generate HTML
+          const printWindow = window.open("", "_blank");
+          
+          const statusHTML = Object.entries(statusBreakdown)
+            .sort((a, b) => b[1] - a[1])
+            .map(([status, count]) => `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${status}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">${count}</td>
+              </tr>
+            `).join('');
+
+          const avgTimeHTML = Object.entries(averageTimeByStatus)
+            .sort((a, b) => b[1] - a[1])
+            .map(([status, days]) => `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${status}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">${days} days</td>
+              </tr>
+            `).join('');
+
+          const workloadHTML = Object.entries(workloadByPM)
+            .sort((a, b) => b[1].total - a[1].total)
+            .map(([pm, data]) => `
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${pm}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">${data.total}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 0.875em; color: #666;">
+                  ${Object.entries(data.byStatus).map(([s, c]) => `${s}: ${c}`).join(', ')}
+                </td>
+              </tr>
+            `).join('');
+
+          printWindow.document.write(`
+            <html>
+              <head>
+                <title>Dashboard Report - Lindsay Precast Drafter Workflow Tracker</title>
+                <style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body { font-family: Arial, sans-serif; padding: 20px; }
+                  h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
+                  h2 { color: #555; margin-top: 20px; margin-bottom: 10px; font-size: 1.25em; }
+                  p { margin: 5px 0; }
+                  table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                  th { background: #f3f4f6; padding: 10px; text-align: left; border-bottom: 2px solid #d1d5db; }
+                  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 0.9em; }
+                  @media print {
+                    button { display: none; }
+                    body { padding: 10px; }
+                    @page { margin: 0.5in; }
+                  }
+                </style>
+              </head>
+              <body>
+                <h1>Dashboard Report</h1>
+                <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+                <p><strong>Total Projects:</strong> ${projects.length}</p>
+                <hr style="margin: 15px 0;">
+
+                <h2>Projects by Status</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th style="text-align: right;">Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${statusHTML}
+                  </tbody>
+                </table>
+
+                <h2>Average Time by Status</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th style="text-align: right;">Average Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${avgTimeHTML}
+                  </tbody>
+                </table>
+
+                <h2>Workload Distribution by Project Manager</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Project Manager</th>
+                      <th style="text-align: right;">Total Projects</th>
+                      <th>Breakdown by Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${workloadHTML}
+                  </tbody>
+                </table>
+
+                <div class="footer">
+                  <p>Lindsay Precast Drafter Workflow Tracker | © ${new Date().getFullYear()} Lindsay Precast</p>
+                </div>
+                <button onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; cursor: pointer; border-radius: 5px;">Print/Save as PDF</button>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+          showToast("Dashboard report generated", "success");
+        };
+
         // Lucide-react icons as inline SVG
         const SearchIcon = () => (
           <svg
@@ -1899,8 +2068,15 @@
               {/* Dashboard */}
               {showDashboard && (
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                  <div className="mb-6">
+                  <div className="mb-6 flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-gray-900">Dashboard & Analytics</h2>
+                    <button
+                      onClick={exportDashboardToPDF}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    >
+                      <DownloadIcon />
+                      Export Dashboard
+                    </button>
                   </div>
                   
                   {/* Key Metrics */}
