@@ -1246,14 +1246,34 @@
                   <title>Lindsay Precast CAD Projects Report</title>
                   <style>
                     * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    body { font-family: Arial, sans-serif; padding: 20px; position: relative; min-height: 100vh; }
                     h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
                     p { margin: 5px 0; }
                     hr { margin: 15px 0; }
+                    .footer { 
+                      margin-top: 40px; 
+                      padding-top: 20px; 
+                      border-top: 1px solid #ddd; 
+                      text-align: center; 
+                      color: #666; 
+                      font-size: 0.9em;
+                    }
                     @media print {
                       button { display: none; }
                       body { padding: 10px; }
-                      @page { margin: 0.5in; }
+                      @page { 
+                        margin: 0.5in;
+                        @bottom-center {
+                          content: "Lindsay Precast CAD Workflow Tracker - " counter(page) " of " counter(pages);
+                        }
+                      }
+                      .footer { 
+                        position: fixed; 
+                        bottom: 0; 
+                        left: 0; 
+                        right: 0; 
+                        padding: 10px 0; 
+                      }
                     }
                   </style>
                 </head>
@@ -1267,6 +1287,9 @@
                   }</p>
                   <hr>
                   ${projectsHTML}
+                  <div class="footer">
+                    <p>Lindsay Precast CAD Workflow Tracker | © ${new Date().getFullYear()} Lindsay Precast | Track projects from assignment to shipment</p>
+                  </div>
                   <button onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; cursor: pointer; border-radius: 5px;">Print/Save as PDF</button>
                 </body>
               </html>
