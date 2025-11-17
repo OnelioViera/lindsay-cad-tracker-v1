@@ -291,20 +291,19 @@
           if (dateRangeStart !== '' && dateRangeEnd !== '') {
             // Both dates set - filter by range
             filtered = filtered.filter(p => {
-              if (!p.dateAssigned) return false; // Exclude projects without dates
-              const projectDate = p.dateAssigned;
-              return projectDate >= dateRangeStart && projectDate <= dateRangeEnd;
+              if (!p.dateAssigned || p.dateAssigned === '') return false; // Exclude projects without dates
+              return p.dateAssigned >= dateRangeStart && p.dateAssigned <= dateRangeEnd;
             });
           } else if (dateRangeStart !== '') {
             // Only start date set - filter from this date onwards
             filtered = filtered.filter(p => {
-              if (!p.dateAssigned) return false; // Exclude projects without dates
+              if (!p.dateAssigned || p.dateAssigned === '') return false; // Exclude projects without dates
               return p.dateAssigned >= dateRangeStart;
             });
           } else if (dateRangeEnd !== '') {
             // Only end date set - filter up to this date
             filtered = filtered.filter(p => {
-              if (!p.dateAssigned) return false; // Exclude projects without dates
+              if (!p.dateAssigned || p.dateAssigned === '') return false; // Exclude projects without dates
               return p.dateAssigned <= dateRangeEnd;
             });
           }
